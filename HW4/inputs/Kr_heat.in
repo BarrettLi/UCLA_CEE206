@@ -1,0 +1,42 @@
+units		real
+atom_style	atomic
+
+# create lattice
+lattice         fcc 5.58
+region          box block 0 5 0 5 0 5
+create_box      1 box
+create_atoms    1 box
+mass            1 83.798
+
+# potential
+timestep        1.0
+pair_style	lj/cut 7.0
+pair_coeff	1 1 0.34319013128 3.591
+neighbor	1.0 bin
+neigh_modify	every 1 check yes
+
+# ouputs
+thermo          100
+thermo_style    custom step temp pe press vol density lx
+dump            2 all custom 100 md.lammpstrj id type x y z
+
+# energy minimization
+fix		1 all box/relax iso 100
+min_style	cg
+minimize	0.0 1.0e-8 1000000 10000000
+unfix		1
+
+# initial equilibration
+fix             1 all momentum 1 linear 1 1 1 angular
+fix             2 all npt temp 1 1 100 iso 100 100 1000
+run             20000
+unfix           2
+unfix           1
+
+# melt
+fix             2 all npt temp 1 150 100 iso 100 100 1000
+run             150000
+unfix           2
+
+# write final configuration
+write_data      Kr_150K.dat nocoeff
