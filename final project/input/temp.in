@@ -1,0 +1,28 @@
+units		real
+atom_style	atomic
+
+# read starting configuration
+read_data	Kr_1K.dat
+
+# potential
+timestep        1.0
+pair_style	lj/cut 7.0
+pair_coeff	1 1 0.34319013128 3.591
+neighbor	1.0 bin
+neigh_modify	every 1 check yes
+
+# ouputs
+thermo          10
+thermo_style    custom step temp pe press vol density lx
+dump            2 all custom 5000 md.lammpstrj id type x y z
+
+# initial run at 1 K
+fix             1 all nvt temp 1 1 100.0
+run             20000
+unfix           1
+
+# sudden increase in temperature
+fix             2 all nvt temp 120 120 2500.0
+run             40000
+unfix           2
+
